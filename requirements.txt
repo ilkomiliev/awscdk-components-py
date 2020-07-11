@@ -1,0 +1,7 @@
+-e .
+
+aws_cdk.aws_elasticloadbalancingv2
+aws_elasticloadbalancingv2_targets
+aws_cdk.aws_ec2
+aws_cognito
+aws_lambda
