@@ -4,10 +4,11 @@ from aws_cdk import (
     aws_elasticloadbalancingv2 as elbv2,
 )
 
+
 class AlbCfg:
-    '''
+    """
         Configuration for the ALB construct
-    '''
+    """
 
     alb_name: str
     vpc: aws_ec2.IVpc
@@ -18,14 +19,14 @@ class AlbCfg:
     internet_facing: bool
 
     def __init__(
-        self,
-        alb_name: str,
-        vpc: aws_ec2.IVpc,
-        subnets: aws_ec2.SubnetSelection,
-        certificate_arns: [str],
-        cidr_ingress_ranges: [str],
-        icmp_ranges: [str],
-        internet_facing: bool = False
+            self,
+            alb_name: str,
+            vpc: aws_ec2.IVpc,
+            subnets: aws_ec2.SubnetSelection,
+            certificate_arns: [str],
+            cidr_ingress_ranges: [str],
+            icmp_ranges: [str],
+            internet_facing: bool = False
     ) -> None:
         self.alb_name = alb_name
         self.vpc = vpc
@@ -37,26 +38,26 @@ class AlbCfg:
 
 
 class AlbHttpsConstruct(core.Construct):
-    '''
+    """
         Creates ALB with HTTPS listener according to the provided AlbCfg configuration.
 
         Configures the security group ingress rules according to the provided CIDR ranges. Optionally,
         if there are icmp_ranges provided, opens these for ICMP ping, useful for testing the connectivity.
-        Additionally opens the egress to everywher on port 443 - this is needed to be able to 
+        Additionally opens the egress to everywhere on port 443 - this is needed to be able to
         communicate with the other AWS services via the AWS endpoints. The created ALB and listener
         are exposed and can be referenced from the outside, see the load_balancer and https_listener
         attributes.
-    '''
+    """
 
     load_balancer: elbv2.ApplicationLoadBalancer
     https_listener: elbv2.ApplicationListener
 
     def __init__(
-        self, 
-        scope: core.Construct, 
-        id1: str, 
-        alb_config: AlbCfg, 
-        **kwargs
+            self,
+            scope: core.Construct,
+            id1: str,
+            alb_config: AlbCfg,
+            **kwargs
     ) -> None:
         super().__init__(scope, id1, **kwargs)
         self.alb_config = alb_config
@@ -71,13 +72,13 @@ class AlbHttpsConstruct(core.Construct):
         self.configure_cidr_ingress()
 
     def create_alb(
-        self, 
-        alb_name: str, 
-        vpc: aws_ec2.IVpc, 
-        subnets: aws_ec2.SubnetSelection
+            self,
+            alb_name: str,
+            vpc: aws_ec2.IVpc,
+            subnets: aws_ec2.SubnetSelection
     ):
         alb = elbv2.ApplicationLoadBalancer(
-            self, 
+            self,
             id=alb_name,
             vpc=vpc,
             load_balancer_name=alb_name,
@@ -87,8 +88,8 @@ class AlbHttpsConstruct(core.Construct):
         return alb
 
     def create_https_listener(
-        self,
-        certificate_arns: [str]
+            self,
+            certificate_arns: [str]
     ):
         https_listener = self.load_balancer.add_listener(
             id='httpslstiner',
@@ -101,7 +102,7 @@ class AlbHttpsConstruct(core.Construct):
 
     def configure_cidr_ingress(self):
         configure_cidr_ingress_rules(
-            self.alb_config.cidr_ingress_ranges, 
+            self.alb_config.cidr_ingress_ranges,
             self.https_listener
         )
         if self.alb_config.icmp_ranges:
@@ -109,58 +110,61 @@ class AlbHttpsConstruct(core.Construct):
 
 
 def configure_cidr_ingress_rules(
-    cidr_list: [str], 
-    https_listener: elbv2.ApplicationListener
+        cidr_list: [str],
+        https_listener: elbv2.ApplicationListener
 ) -> None:
-    '''
+    """
         Opens the security group ingress of the ALB listener for the provided CIDR ranges
         on the listener's default port.
-    '''
+    """
     for cidr in cidr_list:
         https_listener.connections.allow_default_port_from(aws_ec2.Peer.ipv4(cidr))
 
 
 def configure_icmp_ping_rules(
-    cidr_list: [str], 
-    alb_listener: elbv2.ApplicationListener
+        cidr_list: [str],
+        alb_listener: elbv2.ApplicationListener
 ) -> None:
-    '''
+    """
         Allows the ALB listener to be pinged from the defined CIDR ranges.
-    '''
+    """
     for cidr in cidr_list:
         alb_listener.connections.allow_from(aws_ec2.Peer.ipv4(cidr), aws_ec2.Port.icmp_ping())
 
+
 def add_favicon_fix_response(
-    id: str, 
-    alb_listener: elbv2.ApplicationListener, 
-    priority: int = 1
+        id: str,
+        alb_listener: elbv2.ApplicationListener,
+        priority: int = 1
 ) -> None:
-    '''
-        Adds fixed response rule for /favicon.ico in the listener. 
-        
+    """
+        Adds fixed response rule for /favicon.ico in the listener.
+
         Returns fix 201 status code as text/html content type
-    '''
+    """
     alb_listener.add_fixed_response(
         id=id,
         priority=priority,
         path_pattern='/favicon.ico',
         status_code='201',
         content_type=elbv2.ContentType.TEXT_HTML
-    )        
+    )
+
 
 def add_access_denied_fix_response(
-    id: str, 
-    alb_listener: elbv2.ApplicationListener
+        id: str,
+        alb_listener: elbv2.ApplicationListener
 ) -> None:
-    '''
+    """
         All unmatched requests will return 401 Access Denied response to the client.
-    '''
+    """
     alb_listener.add_fixed_response(
         id=id,
         status_code='401',
         content_type=elbv2.ContentType.TEXT_HTML,
         message_body='<html><body><h2>Access Denied!</h2></body><html>'
     )
+
 
 class AlbHttpsStack(core.Stack):
 
