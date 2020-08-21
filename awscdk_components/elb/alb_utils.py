@@ -38,7 +38,7 @@ def register_lambda_target_group_with_cognito_auth_rule(
         target_type=elbv2.TargetType.LAMBDA
     )
 
-    # this is necessary due to a bug in the CDK - TODO: add reference
+    # this is necessary due to a bug in the CDK - TODO: add reference to the issue
     target_group.node.default_child.node.add_dependency(fn)
 
     elbv2.CfnListenerRule(
@@ -125,3 +125,4 @@ def register_ec2_as_alb_target(
         priority=2000
     )
     ec2.connections.allow_from(listener, aws_ec2.Port.tcp(port))
+    listener.add_target_groups(id=target_group_id + 'tg', target_groups=[target_group])
