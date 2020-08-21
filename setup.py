@@ -7,16 +7,13 @@ with open("README.md") as fp:
 
 setuptools.setup(
     name="awscdk-components-pkg-ilkomiliev",
-    version="0.0.2",
+    version="0.0.3-SNAPSHOT",
 
     description="A collection of AWS CDK constructs and utils written in python",
     long_description=long_description,
     long_description_content_type="text/markdown",
 
     author="Hugo Boss",
-
-    package_dir={"src": "awscdk_components"},
-    packages=setuptools.find_packages(where="awscdk_components"),
 
     install_requires=[
         "aws-cdk.core",
