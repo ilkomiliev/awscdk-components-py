@@ -4,7 +4,8 @@ from aws_cdk import (
     aws_ec2,
     aws_elasticloadbalancingv2 as elbv2,
     aws_elasticloadbalancingv2_targets as elvb2_targets,
-    aws_cognito
+    aws_cognito,
+    aws_s3
 )
 
 
@@ -126,3 +127,19 @@ def register_ec2_as_alb_target(
     )
     ec2.connections.allow_from(listener, aws_ec2.Port.tcp(port))
     listener.add_target_groups(id=target_group_id + 'tg', target_groups=[target_group])
+
+
+def enable_logging(
+        load_balancer: elbv2.BaseLoadBalancer,
+        logging_s3_bucket: aws_s3.IBucket,
+        logging_prefix: str = None
+) -> None:
+    """
+        Enables the logs of the LB to be written to the provided S3 bucket.
+
+        Please note that the S3 bucket must be properly configured to be able to write to it!
+    """
+    load_balancer.log_access_logs(
+        bucket=logging_s3_bucket,
+        prefix=logging_prefix
+    )

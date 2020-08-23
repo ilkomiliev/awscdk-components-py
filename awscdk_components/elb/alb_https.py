@@ -2,7 +2,10 @@ from aws_cdk import (
     core,
     aws_ec2,
     aws_elasticloadbalancingv2 as elbv2,
+    aws_s3
 )
+
+from awscdk_components.elb import alb_utils
 
 
 class AlbCfg:
@@ -17,6 +20,8 @@ class AlbCfg:
     cidr_ingress_ranges: [str]
     icmp_ranges: [str]
     internet_facing: bool
+    logging_s3_bucket: aws_s3.IBucket
+    logging_prefix: str
 
     def __init__(
             self,
@@ -26,7 +31,9 @@ class AlbCfg:
             certificate_arns: [str],
             cidr_ingress_ranges: [str],
             icmp_ranges: [str],
-            internet_facing: bool = False
+            internet_facing: bool = False,
+            logging_s3_bucket: aws_s3.IBucket = None,
+            logging_prefix: str = None
     ) -> None:
         self.alb_name = alb_name
         self.vpc = vpc
@@ -35,6 +42,8 @@ class AlbCfg:
         self.cidr_ingress_ranges = cidr_ingress_ranges
         self.icmp_ranges = icmp_ranges
         self.internet_facing = internet_facing
+        self.logging_s3_bucket = logging_s3_bucket
+        self.logging_prefix = logging_prefix
 
 
 class AlbHttpsConstruct(core.Construct):
@@ -66,16 +75,24 @@ class AlbHttpsConstruct(core.Construct):
         vpc = alb_config.vpc
         subnets = alb_config.subnets
         certificate_arns = alb_config.certificate_arns
+        internet_facing = alb_config.internet_facing
 
-        self.load_balancer = self.create_alb(alb_name, vpc, subnets)
+        self.load_balancer = self.create_alb(alb_name, vpc, subnets, internet_facing)
         self.https_listener = self.create_https_listener(certificate_arns)
         self.configure_cidr_ingress()
+        if alb_config.logging_s3_bucket:
+            alb_utils.enable_logging(
+                load_balancer=self.load_balancer,
+                logging_s3_bucket=alb_config.logging_s3_bucket,
+                logging_prefix=alb_config.logging_prefix
+            )
 
     def create_alb(
             self,
             alb_name: str,
             vpc: aws_ec2.IVpc,
-            subnets: aws_ec2.SubnetSelection
+            subnets: aws_ec2.SubnetSelection,
+            internet_facing: bool
     ):
         alb = elbv2.ApplicationLoadBalancer(
             self,
@@ -83,7 +100,7 @@ class AlbHttpsConstruct(core.Construct):
             vpc=vpc,
             load_balancer_name=alb_name,
             vpc_subnets=subnets,
-            internet_facing=False
+            internet_facing=internet_facing
         )
         return alb
 

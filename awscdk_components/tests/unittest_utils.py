@@ -7,7 +7,7 @@ from aws_cdk import (
 
 
 def get_template(app: core.App, stack_name: str):
-    template = app.synth().get_stack(stack_name).template
+    template = app.synth().get_stack_by_name(stack_name).template
     return json.dumps(template)
 
 

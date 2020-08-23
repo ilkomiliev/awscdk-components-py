@@ -47,4 +47,30 @@ class AlbUtilsTest(TestCase):
         )
         add_access_denied_fix_response('fix401resp', alb_construct.https_listener)
         template = get_template(app, stack.stack_name)
-        print(template)
+        self.assertIn(
+            '{"Type": "AWS::EC2::Instance"',
+            template,
+            'EC2 instance is created'
+        )
+        self.assertIn(
+            '{"Type": "AWS::ElasticLoadBalancingV2::TargetGroup", "Properties": {"Port": 443, "Protocol": "HTTPS", '
+            '"Targets": [{"Id": {"Ref": "ec2foralb',
+            template,
+            'Target group is created'
+        )
+        self.assertIn(
+            '"TargetType": "instance"',
+            template,
+            'The TG type is instance'
+        )
+        self.assertIn(
+            '"ec2alblrule": {"Type": "AWS::ElasticLoadBalancingV2::ListenerRule", "Properties": {"Actions": [{'
+            '"Order": 20, "TargetGroupArn": {"Ref": "ec2tg',
+            template,
+            'Listener rule for the TG is created'
+        )
+        self.assertIn(
+            '"Type": "forward"}], "Conditions": [{"Field": "path-pattern", "Values": ["/ec2"]}]',
+            template,
+            'From type forward to the provided path /ec2'
+        )
