@@ -1,7 +1,5 @@
-# Custom AWS CDK Constructs
+# This repository is not actively maintained anymore. Please check 
 
-![Upload Python Package](https://github.com/ilkomiliev/awscdk-components-py/workflows/Upload%20Python%20Package/badge.svg?branch=v0.0.2)
+https://github.com/raiffeisenbankinternational/awscdk-components-py
 
-Contains a set of higher level AWS CDK constructs.
-
-see also https://github.com/aws/aws-cdk
+for up to date status of the development.
